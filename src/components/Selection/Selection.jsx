@@ -152,7 +152,7 @@ class Selection extends Component {
                 let action = this.mixer.clipAction(this.char1.animations[0]);
                 action.play();
                 this.char1.scene.scale.set(0.15, 0.15, 0.15);
-                this.char1.scene.position.set(-77, 2, 0);
+                this.char1.scene.position.set(-window.innerWidth / 24, 2, 0);
                 this.scene.add(this.char1.scene);
             });
         }
@@ -171,7 +171,7 @@ class Selection extends Component {
                     );
                     action.play();
                     this.char2.scene.scale.set(0.15, 0.15, 0.15);
-                    this.char2.scene.position.set(77, 2, 0);
+                    this.char2.scene.position.set(window.innerWidth / 24, 2, 0);
                     this.scene.add(this.char2.scene);
                 },
                 (xhr) => {}

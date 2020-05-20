@@ -175,7 +175,6 @@ class Game extends Component {
     };
 
     playerDie = (playerDead) => {
-        console.log(playerDead, this.state.pname);
         if (playerDead === 'J2') {
             this.j2Dead = true;
             this.j1Score = this.j1Score + 1;
@@ -211,7 +210,6 @@ class Game extends Component {
         if (this.state.pname === 'J1' && playerDead === 'J1') {
             // si je suis mort et que je suis j1
             let index = Math.floor(Math.random() * 9);
-            console.log(index);
             setTimeout(() => {
                 this.playerHP = 198;
                 this.lifeBar.style.width = this.playerHP + 'px';
@@ -226,7 +224,6 @@ class Game extends Component {
         if (this.state.pname === 'J2' && playerDead === 'J2') {
             // si je suis mort et que je suis j2
             let index = Math.floor(Math.random() * 9);
-            console.log(index);
             setTimeout(() => {
                 this.playerHP = 198;
                 this.lifeBar.style.width = this.playerHP + 'px';
@@ -265,6 +262,11 @@ class Game extends Component {
             new THREE.Vector3(0, 0, 0).clone()
         );
 
+        let rayCaster = new THREE.Raycaster(
+            this.controls.getObject().position,
+            camDir
+        );
+
         if (this.moveBack) {
             rotMatrix = new THREE.Matrix4();
             rotMatrix.makeRotationY((180 * Math.PI) / 180);
@@ -280,73 +282,13 @@ class Game extends Component {
             camDir.applyMatrix4(rotMatrix);
         }
 
-        let rayCaster = new THREE.Raycaster(
-            this.controls.getObject().position,
-            camDir
-        );
-
-        let intersects = rayCaster.intersectObjects(this.fixObjects);
+        let intersects = rayCaster.intersectObjects(this.fixObjects, true);
         for (let i = 0; i < intersects.length; i++) {
             if (intersects[i].distance < this.state.player.collisionRadius) {
                 return true;
             }
         }
         return false;
-    };
-
-    listenPlayerMove = () => {
-        let keyDown = (e) => {
-            switch (e.keyCode) {
-                case 38:
-                case 87:
-                    this.moveFront = true;
-                    break;
-                case 37:
-                case 65:
-                    this.moveLeft = true;
-                    break;
-                case 40:
-                case 83:
-                    this.moveBack = true;
-                    break;
-                case 39:
-                case 68:
-                    this.moveRight = true;
-                    break;
-                case 32:
-                    if (this.jump) this.playerVelocity.y += 350;
-                    this.jump = false;
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        let keyUp = (e) => {
-            switch (e.keyCode) {
-                case 38:
-                case 87:
-                    this.moveFront = false;
-                    break;
-                case 37:
-                case 65:
-                    this.moveLeft = false;
-                    break;
-                case 40:
-                case 83:
-                    this.moveBack = false;
-                    break;
-                case 39:
-                case 68:
-                    this.moveRight = false;
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        document.addEventListener('keydown', keyDown, false);
-        document.addEventListener('keyup', keyUp, false);
     };
 
     generateMap = () => {
@@ -474,9 +416,11 @@ class Game extends Component {
     lockChange = () => {
         if (document.pointerLockElement === this.container) {
             document.querySelector('#blocker').style.display = 'none';
+            document.querySelector('#menu').style.display = 'none';
             this.controls.enabled = true;
         } else {
             document.querySelector('#blocker').style.display = '';
+            document.querySelector('#menu').style.display = '';
             this.controls.enabled = false;
         }
     };
@@ -485,6 +429,66 @@ class Game extends Component {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    listenPlayerMove = () => {
+        let keyDown = (e) => {
+            console.log(e.keyCode);
+            switch (e.keyCode) {
+                case 38:
+                case 87:
+                case 90:
+                    this.moveFront = true;
+                    break;
+                case 37:
+                case 65:
+                case 81:
+                    this.moveLeft = true;
+                    break;
+                case 40:
+                case 83:
+                    this.moveBack = true;
+                    break;
+                case 39:
+                case 68:
+                    this.moveRight = true;
+                    break;
+                case 32:
+                    if (this.jump) this.playerVelocity.y += 350;
+                    this.jump = false;
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        let keyUp = (e) => {
+            switch (e.keyCode) {
+                case 38:
+                case 87:
+                case 90:
+                    this.moveFront = false;
+                    break;
+                case 37:
+                case 65:
+                case 81:
+                    this.moveLeft = false;
+                    break;
+                case 40:
+                case 83:
+                    this.moveBack = false;
+                    break;
+                case 39:
+                case 68:
+                    this.moveRight = false;
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', keyDown, false);
+        document.addEventListener('keyup', keyUp, false);
     };
 
     animatePlayer = (delta) => {
@@ -562,14 +566,6 @@ class Game extends Component {
             this.controls.getObject().position.y = 16;
             this.jump = true;
         }
-
-        // if (this.state.pname === 'J1') {
-        //     this.weapon1.position.y =
-        //         this.camera.position.y - 23 + Math.sin(delta * 0.5) * 10;
-        // } else {
-        //     this.weapon2.position.y =
-        //         this.camera.position.y - 23 + Math.sin(delta * 0.5) * 10;
-        // }
     };
 
     moveModel = (player, options) => {
@@ -653,6 +649,12 @@ class Game extends Component {
                     <div id="hp"></div>
                 </div>
                 <div id="crosshair"></div>
+                <div id="menu">
+                    <a href={`/selection/${this.props.location.state.roomID}`}>
+                        Back to selections
+                    </a>
+                    <p>commandes</p>
+                </div>
                 <div id="blocker">
                     <div id="instructions">
                         <strong> Loading... </strong>
