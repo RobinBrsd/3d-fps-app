@@ -1,0 +1,7 @@
+@import './destyle.css';
+
+body {
+    overflow: hidden;
+    background-color: black;
+    font-family: Helvetica, sans-serif;
+}

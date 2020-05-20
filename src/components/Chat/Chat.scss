@@ -1,0 +1,67 @@
+.chat {
+    position: absolute;
+    bottom: 0;
+    width: 100vw;
+    height: 30vh;
+    background-color: rgba($color: #fff, $alpha: 0.1);
+    border-top: 5px solid white;
+    border-left: 4.5px solid white;
+    color: white;
+    overflow-y: scroll;
+    z-index: 5;
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #fff;
+
+        &:hover {
+            background: #555;
+        }
+    }
+
+    .log {
+        margin: 15px 10px;
+        margin-bottom: 3px;
+        h1 {
+            color: rgba($color: #fff, $alpha: 0.7);
+        }
+    }
+
+    input {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: rgba($color: #fff, $alpha: 0.15);
+        height: 30px;
+        padding: 23px 10px;
+    }
+
+    #msg-container {
+        padding: 10px;
+        padding-bottom: 55px;
+
+        li {
+            display: flex;
+            width: 100%;
+
+            span {
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-right: 10px;
+            }
+
+            .j1 {
+                color: blue;
+            }
+
+            .j2 {
+                color: red;
+            }
+        }
+    }
+}
