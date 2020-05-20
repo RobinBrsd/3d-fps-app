@@ -7,7 +7,13 @@ import charModel from './out.glb';
 import weaponModel from './commando.glb';
 import openSocket from 'socket.io-client';
 import './Game.scss';
-const socket = openSocket('http://localhost:7777');
+
+var backURL = 'http://localhost:7777/';
+if (!window.location.href.includes('http://localhost:7777/')) {
+    backURL = 'https://fps-3d-server.herokuapp.com';
+}
+
+const socket = openSocket(backURL);
 
 class Game extends Component {
     state = {

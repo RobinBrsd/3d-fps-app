@@ -9,7 +9,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import model from './out.glb';
 import Chat from '../Chat/Chat';
 
-const socket = openSocket('http://localhost:7777');
+var backURL = 'http://localhost:7777/';
+if (!window.location.href.includes('http://localhost:7777/')) {
+    backURL = 'https://fps-3d-server.herokuapp.com';
+}
+
+const socket = openSocket(backURL);
 
 class Selection extends Component {
     state = {
