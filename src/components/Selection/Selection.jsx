@@ -10,7 +10,7 @@ import model from './out.glb';
 import Chat from '../Chat/Chat';
 
 var backURL = 'http://localhost:7777/';
-if (!window.location.href.includes('http://localhost:7777/')) {
+if (!window.location.href.includes('http://localhost:3000/')) {
     backURL = 'https://fps-3d-server.herokuapp.com';
 }
 

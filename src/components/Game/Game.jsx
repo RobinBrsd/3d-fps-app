@@ -9,7 +9,8 @@ import openSocket from 'socket.io-client';
 import './Game.scss';
 
 var backURL = 'http://localhost:7777/';
-if (!window.location.href.includes('http://localhost:7777/')) {
+if (!window.location.href.includes('http://localhost:3000/')) {
+    console.log(window.location.href);
     backURL = 'https://fps-3d-server.herokuapp.com';
 }
 
@@ -25,9 +26,9 @@ class Game extends Component {
         ),
         socket: socket,
         player: {
-            bulletSpeed: 100,
-            speed: 800.0,
-            collisionRadius: 10,
+            bulletSpeed: 400,
+            speed: 600.0,
+            collisionRadius: 12,
         },
         wall: { width: 50, height: 70 },
         map: [
@@ -433,7 +434,6 @@ class Game extends Component {
 
     listenPlayerMove = () => {
         let keyDown = (e) => {
-            console.log(e.keyCode);
             switch (e.keyCode) {
                 case 38:
                 case 87:
@@ -629,7 +629,7 @@ class Game extends Component {
                         socket.emit('hit', this.state.roomID, this.state.pname);
                         setTimeout(() => {
                             this.hasHitRecently = false;
-                        }, 200);
+                        }, 80);
                     }
                 }
             });
