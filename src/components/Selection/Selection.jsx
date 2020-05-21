@@ -25,17 +25,22 @@ class Selection extends Component {
     };
 
     componentDidMount = () => {
-        this.audio = new Audio(require('../Audio/selection-theme.mp3'));
-        this.audio.loop = true;
-        this.audio.play();
         this.checkUrl();
-
+        this.playSong();
         socket.on('errorFull', (msg) => {
             setTimeout(() => {
                 window.location.pathname = `/selection/${shortid.generate()}`;
             }, 500);
             return;
         });
+    };
+
+    playSong = () => {
+        if (!this.audio) {
+            this.audio = new Audio(require('../Audio/selection-theme.mp3'));
+            this.audio.loop = true;
+            this.audio.play();
+        }
     };
 
     componentDidUpdate = () => {
@@ -53,7 +58,7 @@ class Selection extends Component {
     };
 
     componentWillUnmount = () => {
-        this.audio.pause();
+        if (this.audio) this.audio.pause();
         let canvas = document.querySelector('canvas');
         canvas.parentNode.removeChild(canvas);
         window.removeEventListener('resize', this.updateDimensions);
@@ -85,6 +90,10 @@ class Selection extends Component {
                 window.location.pathname = `/selection/${shortid.generate()}`;
             }, 1000);
             return;
+        } else if (!window.location.pathname.split('/')[3]) {
+            window.location.pathname = `/selection/${
+                window.location.pathname.split('/')[2]
+            }/s`;
         } else {
             this.setState({
                 roomID: window.location.pathname.split('/')[2],
