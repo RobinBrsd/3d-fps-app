@@ -210,11 +210,11 @@ class Game extends Component {
             new THREE.MeshBasicMaterial({ color: 'white' })
         );
 
-        bullet.position.copy(bulletPos.posEmit);
         bullet.quaternion._w = bulletPos.posCam._w;
         bullet.quaternion._x = bulletPos.posCam._x;
         bullet.quaternion._y = bulletPos.posCam._y;
         bullet.quaternion._z = bulletPos.posCam._z;
+        bullet.position.copy(bulletPos.posEmit);
 
         this.scene.add(bullet);
         this.bullets.push({ bullet, alive: 0 });
