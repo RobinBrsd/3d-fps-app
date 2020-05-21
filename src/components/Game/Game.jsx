@@ -10,7 +10,6 @@ import './Game.scss';
 
 var backURL = 'http://localhost:7777/';
 if (!window.location.href.includes('http://localhost:3000/')) {
-    console.log(window.location.href);
     backURL = 'https://fps-3d-server.herokuapp.com';
 }
 
@@ -47,6 +46,13 @@ class Game extends Component {
 
     componentDidMount = () => {
         console.log(`Logged as ${this.state.pname}`);
+        this.audio = new Audio(
+            require('../Audio/playlist/bensound-newdawn.mp3')
+        );
+        this.audio.loop = true;
+        this.audio.volume = 0.24;
+        this.audio.play();
+
         this.lifeBar = document.querySelector('#hp');
         this.playerHP = 198;
         this.j1Score = 0;
@@ -63,15 +69,42 @@ class Game extends Component {
         }, 3000);
 
         this.spawn = [
-            { x: 15, y: 450, z: -190 },
-            { x: -240, y: 450, z: -50 },
-            { x: 57, y: 450, z: -292 },
-            { x: 55, y: 450, z: -235 },
-            { x: 37, y: 450, z: 37 },
-            { x: -270, y: 450, z: -275 },
-            { x: -294, y: 450, z: 5 },
-            { x: -277, y: 450, z: 57 },
-            { x: -203, y: 450, z: 52 },
+            {
+                pos: { x: 15, y: 50, z: -190 },
+                rot: { y: 2.9 },
+            },
+            {
+                pos: { x: -240, y: 50, z: -50 },
+                rot: { y: -0.44 },
+            },
+            {
+                pos: { x: 57, y: 50, z: -292 },
+                rot: { y: 3.1 },
+            },
+            {
+                pos: { x: 55, y: 50, z: -235 },
+                rot: { y: 3.1 },
+            },
+            {
+                pos: { x: 37, y: 50, z: 37 },
+                rot: { y: 0.8 },
+            },
+            {
+                pos: { x: -270, y: 50, z: -275 },
+                rot: { y: -2.3 },
+            },
+            {
+                pos: { x: -294, y: 50, z: 5 },
+                rot: { y: -0.2 },
+            },
+            {
+                pos: { x: -277, y: 50, z: 57 },
+                rot: { y: -1.5 },
+            },
+            {
+                pos: { x: -203, y: 50, z: 52 },
+                rot: { y: -1.5 },
+            },
         ];
 
         socket.emit('joinRoomGame', this.state.roomID, this.state.pname);
@@ -100,12 +133,13 @@ class Game extends Component {
     };
 
     componentWillUnmount = () => {
+        this.audio.pause();
         let canvas = document.querySelector('canvas');
         canvas.parentNode.removeChild(canvas);
         window.removeEventListener('resize', this.updateDimensions);
     };
 
-    setScene = () => {
+    setScene = async () => {
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0015);
 
@@ -121,19 +155,23 @@ class Game extends Component {
             1,
             2000
         );
+
         this.camera.rotation.order = 'YXZ';
         if (this.state.pname === 'J1') {
             this.camera.position.set(
-                this.spawn[0].x,
-                this.spawn[0].y,
-                this.spawn[0].z
+                this.spawn[0].pos.x,
+                this.spawn[0].pos.y,
+                this.spawn[0].pos.z
             );
+
+            this.camera.rotation.y = this.spawn[0].rot.y;
         } else {
             this.camera.position.set(
-                this.spawn[1].x,
-                this.spawn[1].y,
-                this.spawn[1].z
+                this.spawn[1].pos.x,
+                this.spawn[1].pos.y,
+                this.spawn[1].pos.z
             );
+            this.camera.rotation.y = this.spawn[1].rot.y;
         }
         this.scene.add(this.camera);
 
@@ -154,6 +192,8 @@ class Game extends Component {
     };
 
     shootBullet = () => {
+        var audio = new Audio(require('../Audio/gun-shot.mp3'));
+        audio.play();
         let posEmit = this.emitter.getWorldPosition(new THREE.Vector3());
         let posCam = this.camera.quaternion;
         socket.emit('shoot', this.state.roomID, { posEmit, posCam });
@@ -176,6 +216,8 @@ class Game extends Component {
     };
 
     playerDie = (playerDead) => {
+        var audio = new Audio(require('../Audio/death.wav'));
+        audio.play();
         if (playerDead === 'J2') {
             this.j2Dead = true;
             this.j1Score = this.j1Score + 1;
@@ -210,30 +252,36 @@ class Game extends Component {
 
         if (this.state.pname === 'J1' && playerDead === 'J1') {
             // si je suis mort et que je suis j1
+            this.dead = true;
             let index = Math.floor(Math.random() * 9);
             setTimeout(() => {
+                this.dead = false;
                 this.playerHP = 198;
                 this.lifeBar.style.width = this.playerHP + 'px';
                 this.camera.position.set(
-                    this.spawn[index].x,
-                    this.spawn[index].y,
-                    this.spawn[index].z
+                    this.spawn[index].pos.x,
+                    this.spawn[index].pos.y,
+                    this.spawn[index].pos.z
                 );
-            }, 1000);
+                this.camera.rotation.y = this.spawn[index].rot.y;
+            }, 1150);
         }
 
         if (this.state.pname === 'J2' && playerDead === 'J2') {
             // si je suis mort et que je suis j2
+            this.dead = true;
             let index = Math.floor(Math.random() * 9);
             setTimeout(() => {
+                this.dead = false;
                 this.playerHP = 198;
                 this.lifeBar.style.width = this.playerHP + 'px';
                 this.camera.position.set(
-                    this.spawn[index].x,
-                    this.spawn[index].y,
-                    this.spawn[index].z
+                    this.spawn[index].pos.x,
+                    this.spawn[index].pos.y,
+                    this.spawn[index].pos.z
                 );
-            }, 1000);
+                this.camera.rotation.y = this.spawn[index].rot.y;
+            }, 1150);
         }
     };
 
@@ -432,29 +480,50 @@ class Game extends Component {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     };
 
+    playWalkSound = () => {
+        if (!this.isPlayingSound) {
+            let audio = new Audio(require('../Audio/walk.wav'));
+            audio.volume = 0.21;
+            audio.play();
+            this.isPlayingSound = true;
+            setTimeout(() => {
+                this.isPlayingSound = false;
+            }, 300);
+        }
+    };
+
     listenPlayerMove = () => {
         let keyDown = (e) => {
+            if (this.dead) return;
             switch (e.keyCode) {
                 case 38:
                 case 87:
                 case 90:
+                    this.playWalkSound();
                     this.moveFront = true;
                     break;
                 case 37:
                 case 65:
                 case 81:
+                    this.playWalkSound();
                     this.moveLeft = true;
                     break;
                 case 40:
                 case 83:
+                    this.playWalkSound();
                     this.moveBack = true;
                     break;
                 case 39:
                 case 68:
+                    this.playWalkSound();
                     this.moveRight = true;
                     break;
                 case 32:
-                    if (this.jump) this.playerVelocity.y += 350;
+                    if (this.jump) {
+                        var audio = new Audio(require('../Audio/jump.wav'));
+                        audio.play();
+                        this.playerVelocity.y += 350;
+                    }
                     this.jump = false;
                     break;
                 default:

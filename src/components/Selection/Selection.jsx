@@ -25,6 +25,9 @@ class Selection extends Component {
     };
 
     componentDidMount = () => {
+        this.audio = new Audio(require('../Audio/selection-theme.mp3'));
+        this.audio.loop = true;
+        this.audio.play();
         this.checkUrl();
 
         socket.on('errorFull', (msg) => {
@@ -50,12 +53,15 @@ class Selection extends Component {
     };
 
     componentWillUnmount = () => {
+        this.audio.pause();
         let canvas = document.querySelector('canvas');
         canvas.parentNode.removeChild(canvas);
         window.removeEventListener('resize', this.updateDimensions);
     };
 
     getPseudo = (pnumber) => {
+        var audio = new Audio(require('../Audio/joinRoom.wav'));
+        audio.play();
         if (this.state.pname === '') {
             if (pnumber === 'J2') {
                 this.setState({
@@ -88,6 +94,8 @@ class Selection extends Component {
     };
 
     setBtnRdy = (p) => {
+        var audio = new Audio(require('../Audio/click.wav'));
+        audio.play();
         let btn = document.querySelector(`.btn${p}`);
         btn.innerHTML = 'ready';
         btn.style.display = 'block';
@@ -97,7 +105,7 @@ class Selection extends Component {
         if (btn1.innerHTML === 'ready' && btn2.innerHTML === 'ready') {
             setTimeout(() => {
                 this.setState({ redirect: true });
-            }, 500);
+            }, 700);
         }
     };
 

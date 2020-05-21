@@ -58,6 +58,9 @@ function Chat(props) {
     };
 
     const getMessage = (msg, player) => {
+        var audio = new Audio(require('../Audio/chat.mp3'));
+        audio.play();
+
         let li = document.createElement('li');
         let span = document.createElement('span');
         let p = document.createElement('p');
