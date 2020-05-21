@@ -206,8 +206,9 @@ class Game extends Component {
         );
 
         bullet.position.copy(bulletPos.posEmit);
-        bullet.quaternion._w = bulletPos.posCam._w;
+
         bullet.quaternion._x = bulletPos.posCam._x;
+        bullet.quaternion._w = bulletPos.posCam._w;
         bullet.quaternion._y = bulletPos.posCam._y;
         bullet.quaternion._z = bulletPos.posCam._z;
 
