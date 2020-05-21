@@ -22,6 +22,7 @@ class Selection extends Component {
         room: false,
         pname: '',
         pcount: 0,
+        vol: 0.05,
     };
 
     componentDidMount = () => {
@@ -38,6 +39,7 @@ class Selection extends Component {
     playSong = () => {
         if (!this.audio) {
             this.audio = new Audio(require('../Audio/selection-theme.mp3'));
+            this.audio.volume = this.state.vol;
             this.audio.loop = true;
             this.audio.play();
         }
@@ -66,6 +68,7 @@ class Selection extends Component {
 
     getPseudo = (pnumber) => {
         var audio = new Audio(require('../Audio/joinRoom.wav'));
+        audio.volume = this.state.vol;
         audio.play();
         if (this.state.pname === '') {
             if (pnumber === 'J2') {
@@ -104,6 +107,7 @@ class Selection extends Component {
 
     setBtnRdy = (p) => {
         var audio = new Audio(require('../Audio/click.wav'));
+        audio.volume = this.state.vol;
         audio.play();
         let btn = document.querySelector(`.btn${p}`);
         btn.innerHTML = 'ready';

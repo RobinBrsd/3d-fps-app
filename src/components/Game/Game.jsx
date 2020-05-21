@@ -23,10 +23,11 @@ class Game extends Component {
             this.props.location.state.roomID,
             -1
         ),
+        vol: 0.05,
         socket: socket,
         player: {
-            bulletSpeed: 400,
-            speed: 600.0,
+            bulletSpeed: 550,
+            speed: 470.0,
             collisionRadius: 12,
         },
         wall: { width: 50, height: 70 },
@@ -50,7 +51,7 @@ class Game extends Component {
             require('../Audio/playlist/bensound-newdawn.mp3')
         );
         this.audio.loop = true;
-        this.audio.volume = 0.24;
+        this.audio.volume = this.state.vol - 0.03;
         this.audio.play();
 
         this.lifeBar = document.querySelector('#hp');
@@ -143,7 +144,7 @@ class Game extends Component {
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0015);
 
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setClearColor(this.scene.fog.color);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -191,8 +192,12 @@ class Game extends Component {
         this.getPointerLock();
     };
 
-    shootBullet = () => {
+    shootBullet = (e) => {
+        if (e.which === 3) {
+            return;
+        }
         var audio = new Audio(require('../Audio/gun-shot.mp3'));
+        audio.volume = this.state.vol;
         audio.play();
         let posEmit = this.emitter.getWorldPosition(new THREE.Vector3());
         let posCam = this.camera.quaternion;
@@ -212,11 +217,12 @@ class Game extends Component {
         bullet.quaternion._z = bulletPos.posCam._z;
 
         this.scene.add(bullet);
-        this.bullets.push(bullet);
+        this.bullets.push({ bullet, alive: 0 });
     };
 
     playerDie = (playerDead) => {
         var audio = new Audio(require('../Audio/death.wav'));
+        audio.volume = this.state.vol;
         audio.play();
         if (playerDead === 'J2') {
             this.j2Dead = true;
@@ -287,11 +293,11 @@ class Game extends Component {
 
     checkHit = (player) => {
         if (player === 'J1' && this.state.pname === 'J2' && !this.j2Dead) {
-            this.playerHP = this.playerHP - 20;
+            this.playerHP = this.playerHP - 35;
         }
 
         if (player === 'J2' && this.state.pname === 'J1' && !this.j1Dead) {
-            this.playerHP = this.playerHP - 20;
+            this.playerHP = this.playerHP - 35;
         }
         this.lifeBar.style.width = this.playerHP + 'px';
 
@@ -483,7 +489,7 @@ class Game extends Component {
     playWalkSound = () => {
         if (!this.isPlayingSound) {
             let audio = new Audio(require('../Audio/walk.wav'));
-            audio.volume = 0.21;
+            audio.volume = this.state.vol - 0.038;
             audio.play();
             this.isPlayingSound = true;
             setTimeout(() => {
@@ -521,8 +527,9 @@ class Game extends Component {
                 case 32:
                     if (this.jump) {
                         var audio = new Audio(require('../Audio/jump.wav'));
+                        audio.volume = this.state.vol;
                         audio.play();
-                        this.playerVelocity.y += 350;
+                        this.playerVelocity.y += 200;
                     }
                     this.jump = false;
                     break;
@@ -563,7 +570,7 @@ class Game extends Component {
     animatePlayer = (delta) => {
         this.playerVelocity.x -= this.playerVelocity.x * 10.0 * delta;
         this.playerVelocity.z -= this.playerVelocity.z * 10.0 * delta;
-        this.playerVelocity.y -= 16 * 170.0 * delta;
+        this.playerVelocity.y -= 16 * 100.0 * delta;
 
         let inContact = this.detectCollision();
         if (!inContact) {
@@ -583,39 +590,40 @@ class Game extends Component {
                 this.playerVelocity.y += this.state.player.speed * delta;
             }
 
-            this.controls.moveForward(this.playerVelocity.z * delta);
-            this.controls.moveRight(this.playerVelocity.x * delta);
-            this.controls.getObject().translateY(this.playerVelocity.y * delta);
-
-            var pos = this.controls.getObject();
-
-            let options = {
-                camPosX: pos.position.x,
-                camPosY: pos.position.y,
-                camPosZ: pos.position.z,
-                camRotY: pos.rotation.y,
-                delta: delta,
-            };
+            this.controls.getObject().position.y +=
+                this.playerVelocity.y * delta;
 
             if (
-                this.playerVelocity.x !== 0 ||
-                this.playerVelocity.z !== 0 ||
-                (this.playerVelocity.y !== 0 &&
-                    this.playerVelocity.y !== this.lastY) ||
-                (this.lastRotation !== this.camera.rotation.y &&
-                    this.camera.rotation.y !== 0) ||
-                this.bullet !== this.prevBullet
+                this.moveFront ||
+                this.moveBack ||
+                this.moveLeft ||
+                this.moveRight ||
+                this.jump
             ) {
+                this.controls.moveForward(this.playerVelocity.z * delta);
+                this.controls.moveRight(this.playerVelocity.x * delta);
+
+                var pos = this.controls.getObject();
+
+                let options = {
+                    camPosX: pos.position.x,
+                    camPosY: pos.position.y,
+                    camPosZ: pos.position.z,
+                    camRotY: pos.rotation.y,
+                    delta: delta,
+                };
+
                 socket.emit(
                     'playerMove',
                     this.state.roomID,
                     this.state.pname,
                     options
                 );
+
+                this.prevBullet = this.bullet;
+                this.lastY = this.playerVelocity.y;
+                this.lastRotation = this.camera.rotation.y;
             }
-            this.prevBullet = this.bullet;
-            this.lastY = this.playerVelocity.y;
-            this.lastRotation = this.camera.rotation.y;
         }
         if (
             !(
@@ -631,7 +639,7 @@ class Game extends Component {
         }
 
         if (this.controls.getObject().position.y < 16) {
-            this.playerVelocity.y = 16;
+            this.playerVelocity.y = 0;
             this.controls.getObject().position.y = 16;
             this.jump = true;
         }
@@ -683,23 +691,85 @@ class Game extends Component {
             if ((this.char2 && this.weapon1) || (this.char1 && this.weapon2))
                 this.animatePlayer(delta);
 
-            this.bullets.forEach((bullet) => {
+            this.bullets.forEach((bullet, i) => {
                 if (bullet) {
-                    bullet.translateZ(-this.state.player.bulletSpeed * delta);
-                    let bulletHitbox = new THREE.Box3().setFromObject(bullet);
+                    bullet.alive = bullet.alive + 1;
+
+                    if (bullet.alive > 50) {
+                        bullet.bullet.geometry.dispose();
+                        bullet.bullet.material.dispose();
+                        this.scene.remove(bullet.bullet);
+                        this.bullets.splice(i, 1);
+                    }
+
+                    bullet.bullet.translateZ(
+                        -this.state.player.bulletSpeed * delta
+                    );
+                    let bulletHitbox = new THREE.Box3().setFromObject(
+                        bullet.bullet
+                    );
+
+                    // Bullet hit wall idea 1
+                    // for (let i = 0; i < this.fixObjects.length; i++) {
+                    //     let wallHitBox = new THREE.Box3().setFromObject(
+                    //         this.fixObjects[i]
+                    //     );
+
+                    //     let hasHitWall = bulletHitbox.intersectsBox(wallHitBox);
+
+                    //     if (hasHitWall) {
+                    //         bullet.geometry.dispose();
+                    //         bullet.material.dispose();
+                    //         this.scene.remove(bullet);
+                    //         this.bullets.splice(i, 1);
+                    //         return;
+                    //     }
+                    // }
+
                     let enemyHitbox = new THREE.Box3().setFromObject(
                         this.state.pname === 'J1'
                             ? this.char2.scene
                             : this.char1.scene
                     );
+
                     let hasHit = bulletHitbox.intersectsBox(enemyHitbox);
                     if (hasHit && !this.hasHitRecently) {
+                        bullet.bullet.geometry.dispose();
+                        bullet.bullet.material.dispose();
+                        this.scene.remove(bullet.bullet);
+                        this.bullets.splice(i, 1);
                         this.hasHitRecently = true;
                         socket.emit('hit', this.state.roomID, this.state.pname);
                         setTimeout(() => {
                             this.hasHitRecently = false;
                         }, 80);
+                        return false;
                     }
+
+                    // Bullet hit wall idea 2
+                    // let bulletRay = new THREE.Raycaster(
+                    //     bullet.position,
+                    //     new THREE.Vector3(
+                    //         bullet.quaternion._x,
+                    //         bullet.quaternion._y,
+                    //         -this.state.player.bulletSpeed * delta
+                    //     )
+                    // );
+
+                    // let intersects = bulletRay.intersectObjects(
+                    //     this.fixObjects,
+                    //     true
+                    // );
+                    // for (let i = 0; i < intersects.length; i++) {
+                    //     if (intersects[i].distance <= 10) {
+                    //         console.log('hit');
+                    //         bullet.geometry.dispose();
+                    //         bullet.material.dispose();
+                    //         this.scene.remove(bullet);
+                    //         this.bullets.splice(i, 1);
+                    //         return true;
+                    //     }
+                    // }
                 }
             });
 
