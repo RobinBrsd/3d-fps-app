@@ -224,7 +224,7 @@ class Selection extends Component {
                 />
             );
         }
-        if (this.state.roomID) {
+        if (this.state.roomID && this.state.pname) {
             return (
                 <section className="selections">
                     <div className="container">

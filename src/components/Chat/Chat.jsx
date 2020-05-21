@@ -1,63 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React, { Component } from 'react';
 import './Chat.scss';
 
-function Chat(props) {
-    const [chatSocket, setSocket] = useState(null);
-    var input, msgContainer, log, roomID, pseudo;
+class Chat extends Component {
+    state = {
+        chatSocket: false,
+        roomID: this.props.room,
+        pseudo: this.props.pseudo,
+    };
 
-    useEffect(() => {
-        roomID = props.room;
-        msgContainer = document.querySelector('#msg-container');
+    componentDidMount = () => {
+        console.log(this.state);
 
-        setSocketFunc();
-        return () => {
-            document.removeEventListener('keydown', sendMessage);
-        };
-    }, [chatSocket]);
+        this.input = document.querySelector('#text');
+        this.msgContainer = document.querySelector('#msg-container');
+        this.log = document.querySelector('.log');
+        this.setSocketFunc();
+        this.setLog();
+        document.addEventListener('keydown', this.sendMessage, false);
+    };
 
-    useEffect(() => {
-        pseudo = props.pseudo;
-        roomID = props.room;
-        input = document.querySelector('#text');
-        log = document.querySelector('.log');
-        document.removeEventListener('keydown', sendMessage);
-        document.addEventListener('keydown', sendMessage, false);
-        setLog();
-    }, [props]);
+    componentDidUpdate = () => {
+        this.setSocketFunc();
+        // console.log(this.props);
+        // if(!)
+        // this.setState({
+        //     chatSocket: this.props.socket,
+        //     input: document.querySelector('#text'),
+        //     msgContainer: document.querySelector('#msg-container'),
+        //     log: document.querySelector('.log'),
+        //     roomID: this.props.room,
+        //     pseudo: this.props.pseudo,
+        // });
+    };
 
-    const setLog = () => {
-        if (pseudo) {
-            if (log.children.length >= 1) {
+    componentWillUnmount = () => {
+        document.removeEventListener('keydown', this.sendMessage);
+    };
+
+    setLog = () => {
+        if (this.state.pseudo) {
+            if (this.log.children.length >= 1) {
                 let h1 = document.createElement('h1');
                 h1.innerHTML = ` J2 join the room...`;
-                log.appendChild(h1);
+                this.log.appendChild(h1);
             } else {
                 let h1 = document.createElement('h1');
-                h1.innerHTML = `${pseudo} join the room...`;
-                log.appendChild(h1);
+                h1.innerHTML = `${this.state.pseudo} join the room...`;
+                this.log.appendChild(h1);
             }
         }
     };
 
-    const setSocketFunc = () => {
-        if (!chatSocket) {
-            setSocket(props.socket);
-        } else if (chatSocket) {
-            chatSocket.on('messageReceive', getMessage);
+    setSocketFunc = () => {
+        if (!this.state.chatSocket) {
+            this.setState({ chatSocket: this.props.socket });
+        } else if (this.state.chatSocket) {
+            if (!this.state.chatSocket._callbacks['$messageReceive'])
+                this.state.chatSocket.on('messageReceive', this.getMessage);
         }
     };
 
-    const sendMessage = (e) => {
+    sendMessage = (e) => {
         let keyCode = e.keyCode;
         if (keyCode === 13) {
-            if (input.value) {
-                chatSocket.emit('messageSend', roomID, input.value, pseudo);
-                input.value = '';
-            } else input.focus();
+            if (this.input.value) {
+                this.state.chatSocket.emit(
+                    'messageSend',
+                    this.state.roomID,
+                    this.input.value,
+                    this.state.pseudo
+                );
+                this.input.value = '';
+            } else this.input.focus();
         }
     };
 
-    const getMessage = (msg, player) => {
+    getMessage = (msg, player) => {
         var audio = new Audio(require('../Audio/chat.mp3'));
         audio.volume = 0.05;
         audio.play();
@@ -74,16 +92,18 @@ function Chat(props) {
         p.innerHTML = msg;
         li.appendChild(span);
         li.appendChild(p);
-        msgContainer.appendChild(li);
+        this.msgContainer.appendChild(li);
     };
 
-    return (
-        <div className="chat">
-            <div className="log"></div>
-            <ul id="msg-container"></ul>
-            <input id="text" type="text" autoFocus={true} />
-        </div>
-    );
+    render() {
+        return (
+            <div className="chat">
+                <div className="log"></div>
+                <ul id="msg-container"></ul>
+                <input id="text" type="text" autoFocus={true} />
+            </div>
+        );
+    }
 }
 
 export default Chat;

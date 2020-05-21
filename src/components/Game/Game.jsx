@@ -140,7 +140,7 @@ class Game extends Component {
         window.removeEventListener('resize', this.updateDimensions);
     };
 
-    setScene = async () => {
+    setScene = () => {
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0015);
 
