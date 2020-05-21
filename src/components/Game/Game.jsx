@@ -590,40 +590,40 @@ class Game extends Component {
                 this.playerVelocity.y += this.state.player.speed * delta;
             }
 
+            this.controls.moveForward(this.playerVelocity.z * delta);
+            this.controls.moveRight(this.playerVelocity.x * delta);
             this.controls.getObject().position.y +=
                 this.playerVelocity.y * delta;
 
+            var pos = this.controls.getObject();
+
+            let options = {
+                camPosX: pos.position.x,
+                camPosY: pos.position.y,
+                camPosZ: pos.position.z,
+                camRotY: pos.rotation.y,
+                delta: delta,
+            };
+
             if (
-                this.moveFront ||
-                this.moveBack ||
-                this.moveLeft ||
-                this.moveRight ||
-                this.jump
+                this.playerVelocity.x !== 0 ||
+                this.playerVelocity.z !== 0 ||
+                (this.playerVelocity.y !== 0 &&
+                    this.playerVelocity.y !== this.lastY) ||
+                (this.lastRotation !== this.camera.rotation.y &&
+                    this.camera.rotation.y !== 0) ||
+                this.bullet !== this.prevBullet
             ) {
-                this.controls.moveForward(this.playerVelocity.z * delta);
-                this.controls.moveRight(this.playerVelocity.x * delta);
-
-                var pos = this.controls.getObject();
-
-                let options = {
-                    camPosX: pos.position.x,
-                    camPosY: pos.position.y,
-                    camPosZ: pos.position.z,
-                    camRotY: pos.rotation.y,
-                    delta: delta,
-                };
-
                 socket.emit(
                     'playerMove',
                     this.state.roomID,
                     this.state.pname,
                     options
                 );
-
-                this.prevBullet = this.bullet;
-                this.lastY = this.playerVelocity.y;
-                this.lastRotation = this.camera.rotation.y;
             }
+            this.prevBullet = this.bullet;
+            this.lastY = this.playerVelocity.y;
+            this.lastRotation = this.camera.rotation.y;
         }
         if (
             !(
