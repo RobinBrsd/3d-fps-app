@@ -193,15 +193,20 @@ class Game extends Component {
     };
 
     shootBullet = (e) => {
-        if (e.which === 3) {
-            return;
+        if (
+            document.pointerLockElement === this.container &&
+            !this.openCommandes
+        ) {
+            if (e.which === 3) {
+                return;
+            }
+            var audio = new Audio(require('../Audio/gun-shot.mp3'));
+            audio.volume = this.state.vol;
+            audio.play();
+            let posEmit = this.emitter.getWorldPosition(new THREE.Vector3());
+            let posCam = this.camera.quaternion;
+            socket.emit('shoot', this.state.roomID, { posEmit, posCam });
         }
-        var audio = new Audio(require('../Audio/gun-shot.mp3'));
-        audio.volume = this.state.vol;
-        audio.play();
-        let posEmit = this.emitter.getWorldPosition(new THREE.Vector3());
-        let posCam = this.camera.quaternion;
-        socket.emit('shoot', this.state.roomID, { posEmit, posCam });
     };
 
     displayBullet = (bulletPos) => {
@@ -462,16 +467,25 @@ class Game extends Component {
     };
 
     getPointerLock = () => {
-        document.onclick = () => {
+        document.querySelector('#blocker-container').onclick = () => {
             this.container.requestPointerLock();
         };
         document.addEventListener('pointerlockchange', this.lockChange, false);
     };
 
     lockChange = () => {
-        if (document.pointerLockElement === this.container) {
+        if (
+            document.pointerLockElement === this.container &&
+            !this.openCommandes
+        ) {
             document.querySelector('#blocker').style.display = 'none';
             document.querySelector('#menu').style.display = 'none';
+            this.controls.enabled = true;
+        } else if (this.openCommandes) {
+            document.querySelector('#blocker').style.display = 'none';
+            document.querySelector('#menu').style.display = 'none';
+            document.querySelector('#commandes').style.display = 'none';
+            this.openCommandes = false;
             this.controls.enabled = true;
         } else {
             document.querySelector('#blocker').style.display = '';
@@ -501,6 +515,10 @@ class Game extends Component {
     listenPlayerMove = () => {
         let keyDown = (e) => {
             if (this.dead) return;
+            if (e.key === 'Escape') {
+                this.toggleCommandes(false);
+            }
+            if (!this.controls.enabled) return;
             switch (e.keyCode) {
                 case 38:
                 case 87:
@@ -539,6 +557,7 @@ class Game extends Component {
         };
 
         let keyUp = (e) => {
+            if (!this.controls.enabled) return;
             switch (e.keyCode) {
                 case 38:
                 case 87:
@@ -777,6 +796,18 @@ class Game extends Component {
         }
     };
 
+    toggleCommandes = (action) => {
+        if (action) {
+            this.openCommandes = true;
+            document.querySelector('#blocker').style.display = 'none';
+            document.querySelector('#commandes').style.display = 'flex';
+        } else {
+            this.openCommandes = false;
+            document.querySelector('#blocker').style.display = '';
+            document.querySelector('#commandes').style.display = 'none';
+        }
+    };
+
     render() {
         return (
             <section>
@@ -792,11 +823,59 @@ class Game extends Component {
                     <a href={`/selection/${this.props.location.state.roomID}`}>
                         Back to selections
                     </a>
-                    <p>commandes</p>
+                    <p onClick={() => this.toggleCommandes(true)}>commandes</p>
                 </div>
-                <div id="blocker">
-                    <div id="instructions">
-                        <strong> Loading... </strong>
+                <div id="commandes">
+                    <div className="container-row">
+                        <div className="row row-1">
+                            <button className="fake"> Z </button>
+                            <button className="btn"> Z </button>
+                            <button className="fake"> Z </button>
+                        </div>
+                        <div className="row">
+                            <button className="btn"> Q </button>
+                            <button className="btn S"> S </button>
+                            <button className="btn"> D </button>
+                        </div>
+                        <button className="space"> Space </button>
+                    </div>
+                    <div className="container-row container-row-2">
+                        <div className="row row-1">
+                            <button className="fake"> W </button>
+                            <button className="btn"> W </button>
+                            <button className="fake"> W</button>
+                        </div>
+                        <div className="row">
+                            <button className="btn"> A </button>
+                            <button className="btn S"> S </button>
+                            <button className="btn"> D </button>
+                        </div>
+                        <button className="space"> Space </button>
+                    </div>
+                    <div className="container-row">
+                        <div className="row row-1">
+                            <button className="fake"> Z </button>
+                            <button className="btn"> &uarr; </button>
+                            <button className="fake"> Z </button>
+                        </div>
+                        <div className="row">
+                            <button className="btn"> &larr; </button>
+                            <button className="btn S"> &darr; </button>
+                            <button className="btn"> &rarr; </button>
+                        </div>
+                        <button className="space"> Space </button>
+                    </div>
+                    <button className="shoot"> Shoot : left click</button>
+                    <div
+                        id="close"
+                        onClick={() => this.toggleCommandes(false)}
+                    ></div>
+                </div>
+                <div id="blocker-container">
+                    <div id="blocker">
+                        <div id="instructions">
+                            <strong> Loading... </strong>
+                        </div>
                     </div>
                 </div>
             </section>
